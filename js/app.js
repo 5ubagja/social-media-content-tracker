@@ -424,6 +424,31 @@ function handleFormSubmit(e) {
 }
 
 // ===================================
+// Post Type Visibility Logic
+// ===================================
+
+function handlePostTypeChange() {
+    const type = document.getElementById('inp-type').value;
+    const groupSumber = document.getElementById('form-group-sumber');
+    const groupPengiklan = document.getElementById('form-group-pengiklan');
+
+    if (!groupSumber || !groupPengiklan) return;
+
+    if (type === 'IKLAN') {
+        // Show Pengiklan, Hide Sumber
+        groupPengiklan.style.display = 'block';
+        groupSumber.style.display = 'none';
+
+        // Also ensure Pengiklan input is required if needed (optional based on user request, but good practice)
+        // For now just visibility as requested.
+    } else {
+        // Default (IGPOST, TIKTOK, etc.): Show Sumber, Hide Pengiklan
+        groupPengiklan.style.display = 'none';
+        groupSumber.style.display = 'block';
+    }
+}
+
+// ===================================
 // Counter Input Functions
 // ===================================
 
@@ -868,7 +893,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Form preview updates
     document.getElementById('inp-akun').addEventListener('input', updateFormPreview);
-    document.getElementById('inp-type').addEventListener('change', updateFormPreview);
+
+    document.getElementById('inp-type').addEventListener('change', (e) => {
+        updateFormPreview();
+        handlePostTypeChange();
+    });
 
     // Geolocation
     const btnLocation = document.getElementById('btn-location');
@@ -909,4 +938,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     fetchData();
+    handlePostTypeChange(); // Initialize visibility state
 });
