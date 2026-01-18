@@ -476,11 +476,45 @@ async function fetchInstagramData(url) {
         });
 
         let data = await response.json();
-        console.log('Post by URL Response:', data);
+        console.log('API Response:', data);
 
-        // Check if we got valid data
+        // Check if this is a valid community/profile response
+        if (data && data.screenName) {
+            // Fill account name
+            document.getElementById('inp-akun').value = '@' + data.screenName;
+
+            // If we have lastPosts, use the latest post data
+            if (data.lastPosts && data.lastPosts.length > 0) {
+                const latestPost = data.lastPosts[0];
+                document.getElementById('inp-likes').value = latestPost.likes || 0;
+                document.getElementById('inp-comments').value = latestPost.comments || 0;
+                if (latestPost.type) {
+                    const postType = latestPost.type.toLowerCase().includes('reel') ? 'IGREELS' : 'IGPOST';
+                    document.getElementById('inp-type').value = postType;
+                }
+                if (latestPost.text) {
+                    document.getElementById('inp-caption').value = latestPost.text.substring(0, 500);
+                }
+            }
+
+            // Use average stats if available
+            if (data.avgLikes !== undefined) {
+                document.getElementById('inp-likes').value = Math.round(data.avgLikes) || 0;
+            }
+            if (data.avgComments !== undefined) {
+                document.getElementById('inp-comments').value = Math.round(data.avgComments) || 0;
+            }
+            if (data.avgViews !== undefined) {
+                document.getElementById('inp-views').value = Math.round(data.avgViews) || 0;
+            }
+
+            updateFormPreview();
+            showToast('✅ Data profil berhasil diambil!', 'success');
+            return data;
+        }
+
+        // Check if we got direct post data
         if (data && data.likes !== undefined) {
-            // Direct post data
             document.getElementById('inp-likes').value = data.likes || 0;
             document.getElementById('inp-comments').value = data.comments || 0;
             document.getElementById('inp-views').value = data.views || data.videoViews || 0;
@@ -489,56 +523,13 @@ async function fetchInstagramData(url) {
             }
             if (data.name) {
                 document.getElementById('inp-akun').value = '@' + data.name;
-                updateFormPreview();
             }
             if (data.type) {
                 const postType = data.type.toLowerCase().includes('reel') ? 'IGREELS' : 'IGPOST';
                 document.getElementById('inp-type').value = postType;
-                updateFormPreview();
             }
-            showToast('✅ Data berhasil diambil!', 'success');
-            return data;
-        }
-
-        // If post endpoint fails, try Profile by URL to get lastPosts
-        const profileMatch = url.match(/instagram\.com\/([^\/\?]+)/);
-        if (profileMatch && profileMatch[1] !== 'p' && profileMatch[1] !== 'reel') {
-            const profileUrl = `https://www.instagram.com/${profileMatch[1]}`;
-            apiUrl = `https://instagram-statistics-api.p.rapidapi.com/community?url=${encodeURIComponent(profileUrl)}`;
-
-            response = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
-                    'X-RapidAPI-Host': CONFIG.RAPIDAPI.HOST
-                }
-            });
-
-            data = await response.json();
-            console.log('Profile Response:', data);
-
-            if (data && data.lastPosts && data.lastPosts.length > 0) {
-                const latestPost = data.lastPosts[0];
-                document.getElementById('inp-likes').value = latestPost.likes || 0;
-                document.getElementById('inp-comments').value = latestPost.comments || 0;
-                document.getElementById('inp-akun').value = '@' + (data.screenName || data.name || '');
-                document.getElementById('inp-type').value = 'IGPOST';
-                updateFormPreview();
-                showToast('✅ Data profil berhasil diambil!', 'success');
-                return data;
-            }
-        }
-
-        // If we still have avgLikes/avgComments from profile
-        if (data && data.avgLikes !== undefined) {
-            document.getElementById('inp-likes').value = Math.round(data.avgLikes) || 0;
-            document.getElementById('inp-comments').value = Math.round(data.avgComments) || 0;
-            document.getElementById('inp-views').value = Math.round(data.avgViews) || 0;
-            if (data.screenName) {
-                document.getElementById('inp-akun').value = '@' + data.screenName;
-                updateFormPreview();
-            }
-            showToast('✅ Data rata-rata berhasil diambil!', 'success');
+            updateFormPreview();
+            showToast('✅ Data post berhasil diambil!', 'success');
             return data;
         }
 
