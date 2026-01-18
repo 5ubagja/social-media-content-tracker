@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 
 <body>
@@ -269,6 +269,83 @@
         </button>
       </form>
     </section>
+
+    <!-- Feed Lookup Page -->
+    <section id="page-feed" class="page">
+      <div class="page-header">
+        <button class="btn btn-link" onclick="showPage('dashboard')">✕</button>
+        <h1 class="page-title">FEED LOOKUP</h1>
+        <span class="page-counter">🔍</span>
+      </div>
+
+      <div class="card mb-lg">
+        <div class="card-header">
+          <h3>Cari Data Postingan</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required">Nama Akun</label>
+              <input type="text" class="form-input" id="feed-akun" placeholder="74karta (tanpa @)">
+            </div>
+            <div class="form-group">
+              <label class="form-label required">Platform</label>
+              <select class="form-select" id="feed-platform">
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+                <option value="youtube">YouTube</option>
+                <option value="twitter">Twitter</option>
+                <option value="facebook">Facebook</option>
+                <option value="telegram">Telegram</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required">Dari Tanggal</label>
+              <input type="date" class="form-input" id="feed-from">
+            </div>
+            <div class="form-group">
+              <label class="form-label required">Sampai Tanggal</label>
+              <input type="date" class="form-input" id="feed-to">
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" id="btn-fetch-feed">
+            🔍 Ambil Data Postingan
+          </button>
+        </div>
+      </div>
+
+      <!-- Feed Results -->
+      <div class="card hidden" id="feed-results-card">
+        <div class="card-header">
+          <h3>Hasil Postingan</h3>
+          <span class="badge" id="feed-count">0 posts</span>
+        </div>
+        <div class="card-body" style="overflow-x: auto;">
+          <div class="loading hidden" id="feed-loading">
+            <div class="loading-spinner"></div>
+            <p class="mt-md">Mengambil data...</p>
+          </div>
+          <table class="data-table" id="feed-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Tipe</th>
+                <th>Likes</th>
+                <th>Comments</th>
+                <th>Views</th>
+                <th>Shares</th>
+                <th>ER</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="feed-tbody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Bottom Navigation -->
@@ -280,6 +357,10 @@
     <button class="nav-item" data-page="form">
       <span class="icon">➕</span>
       <span>Input</span>
+    </button>
+    <button class="nav-item" data-page="feed">
+      <span class="icon">🔍</span>
+      <span>Feed</span>
     </button>
   </nav>
 
@@ -375,8 +456,8 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Scripts -->
-  <script src="js/config.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/config.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 
 </html>

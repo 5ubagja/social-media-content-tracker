@@ -554,6 +554,173 @@ async function fetchInstagramData(url) {
 }
 
 // ===================================
+// Feed Lookup Functions (2-Step API)
+// ===================================
+
+// Platform URL mappings
+const PLATFORM_URLS = {
+    instagram: 'https://www.instagram.com/',
+    tiktok: 'https://www.tiktok.com/@',
+    youtube: 'https://www.youtube.com/@',
+    twitter: 'https://twitter.com/',
+    facebook: 'https://www.facebook.com/',
+    telegram: 'https://t.me/'
+};
+
+// Step 1: Get profile CID from username
+async function fetchProfileCid(username, platform) {
+    const baseUrl = PLATFORM_URLS[platform] || PLATFORM_URLS.instagram;
+    const profileUrl = baseUrl + username;
+
+    const apiUrl = `https://instagram-statistics-api.p.rapidapi.com/community?url=${encodeURIComponent(profileUrl)}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
+            'X-RapidAPI-Host': CONFIG.RAPIDAPI.HOST
+        }
+    });
+
+    let data = await response.json();
+    console.log('Profile CID Response:', data);
+
+    // Unwrap nested response
+    if (data && data.data && typeof data.data === 'object') {
+        data = data.data;
+    }
+
+    if (data && data.cid) {
+        return data.cid;
+    }
+
+    throw new Error('Tidak dapat menemukan akun. Pastikan nama akun dan platform benar.');
+}
+
+// Step 2: Get feed posts using CID
+async function fetchFeedPosts(cid, fromDate, toDate) {
+    // Format dates to DD.MM.YYYY
+    const from = formatDateForApi(fromDate);
+    const to = formatDateForApi(toDate);
+
+    const apiUrl = `https://instagram-statistics-api.p.rapidapi.com/feed?cid=${encodeURIComponent(cid)}&from=${from}&to=${to}&type=posts`;
+
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
+            'X-RapidAPI-Host': CONFIG.RAPIDAPI.HOST
+        }
+    });
+
+    let data = await response.json();
+    console.log('Feed Response:', data);
+
+    // Unwrap nested response
+    if (data && data.data && typeof data.data === 'object') {
+        data = data.data;
+    }
+
+    return data;
+}
+
+// Format date from YYYY-MM-DD to DD.MM.YYYY
+function formatDateForApi(dateStr) {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+}
+
+// Main Feed lookup function
+async function handleFeedLookup() {
+    const username = document.getElementById('feed-akun').value.trim();
+    const platform = document.getElementById('feed-platform').value;
+    const fromDate = document.getElementById('feed-from').value;
+    const toDate = document.getElementById('feed-to').value;
+
+    if (!username || !fromDate || !toDate) {
+        showToast('Lengkapi semua field!', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btn-fetch-feed');
+    const resultsCard = document.getElementById('feed-results-card');
+    const loadingDiv = document.getElementById('feed-loading');
+    const tbody = document.getElementById('feed-tbody');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Mengambil data...';
+    resultsCard.classList.remove('hidden');
+    loadingDiv.classList.remove('hidden');
+    tbody.innerHTML = '';
+
+    try {
+        // Step 1: Get CID
+        showToast('Step 1: Mencari akun...', 'info');
+        const cid = await fetchProfileCid(username, platform);
+
+        // Step 2: Get Feed
+        showToast('Step 2: Mengambil postingan...', 'info');
+        const feedData = await fetchFeedPosts(cid, fromDate, toDate);
+
+        // Display results
+        displayFeedResults(feedData);
+        showToast('✅ Data berhasil diambil!', 'success');
+
+    } catch (error) {
+        console.error('Feed lookup error:', error);
+        showToast('Error: ' + error.message, 'error');
+        loadingDiv.classList.add('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Ambil Data Postingan';
+    }
+}
+
+// Display feed results in table
+function displayFeedResults(data) {
+    const loadingDiv = document.getElementById('feed-loading');
+    const tbody = document.getElementById('feed-tbody');
+    const countBadge = document.getElementById('feed-count');
+
+    loadingDiv.classList.add('hidden');
+
+    const posts = data.posts || data || [];
+    countBadge.textContent = `${posts.length} posts`;
+
+    if (posts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Tidak ada postingan dalam rentang tanggal ini</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = posts.map(post => {
+        const date = post.date ? new Date(post.date).toLocaleDateString('id-ID') : '-';
+        const type = post.type || '-';
+        const likes = formatNumber(post.likes || 0);
+        const comments = formatNumber(post.comments || 0);
+        const views = formatNumber(post.views || post.videoViews || 0);
+        const shares = formatNumber(post.rePosts || 0);
+        const er = post.er ? (post.er * 100).toFixed(1) + '%' : '-';
+        const postUrl = post.postUrl || post.url || '#';
+
+        return `
+            <tr>
+                <td>${date}</td>
+                <td><span class="type-badge">${type}</span></td>
+                <td>❤️ ${likes}</td>
+                <td>💬 ${comments}</td>
+                <td>👁️ ${views}</td>
+                <td>🔄 ${shares}</td>
+                <td>${er}</td>
+                <td><a href="${postUrl}" target="_blank" class="btn btn-sm btn-secondary">🔗</a></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ===================================
 // Geolocation Functions
 // ===================================
 
@@ -634,6 +801,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('Masukkan URL terlebih dahulu', 'error');
             }
         });
+    }
+
+    // Feed Lookup
+    const btnFetchFeed = document.getElementById('btn-fetch-feed');
+    if (btnFetchFeed) {
+        btnFetchFeed.addEventListener('click', handleFeedLookup);
     }
 
     // Refresh button
