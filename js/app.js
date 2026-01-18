@@ -450,6 +450,7 @@ function updateFormPreview() {
 async function fetchInstagramData(url) {
     // Validate Instagram URL
     if (!url.includes('instagram.com')) {
+        showToast('Masukkan URL Instagram yang valid', 'error');
         return null;
     }
 
@@ -460,10 +461,10 @@ async function fetchInstagramData(url) {
     }
 
     try {
-        // Call RapidAPI with correct endpoint: /posts/one?post_url=
-        const apiUrl = `https://instagram-statistics-api.p.rapidapi.com/posts/one?post_url=${encodeURIComponent(url)}`;
+        // Try Post by URL endpoint first
+        let apiUrl = `https://instagram-statistics-api.p.rapidapi.com/posts/one?post_url=${encodeURIComponent(url)}`;
 
-        const response = await fetch(apiUrl, {
+        let response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
@@ -471,44 +472,76 @@ async function fetchInstagramData(url) {
             }
         });
 
-        const data = await response.json();
-        console.log('API Response:', data);
+        let data = await response.json();
+        console.log('Post by URL Response:', data);
 
-        if (data && data.data) {
-            const post = data.data;
-
-            // Auto-fill form fields
-            if (post.likes_count !== undefined) {
-                document.getElementById('inp-likes').value = post.likes_count;
+        // Check if we got valid data
+        if (data && data.likes !== undefined) {
+            // Direct post data
+            document.getElementById('inp-likes').value = data.likes || 0;
+            document.getElementById('inp-comments').value = data.comments || 0;
+            document.getElementById('inp-views').value = data.views || data.videoViews || 0;
+            if (data.text) {
+                document.getElementById('inp-caption').value = data.text.substring(0, 500);
             }
-            if (post.comments_count !== undefined) {
-                document.getElementById('inp-comments').value = post.comments_count;
-            }
-            if (post.views_count !== undefined) {
-                document.getElementById('inp-views').value = post.views_count;
-            }
-            if (post.caption) {
-                document.getElementById('inp-caption').value = post.caption.substring(0, 500);
-            }
-            if (post.owner && post.owner.username) {
-                document.getElementById('inp-akun').value = '@' + post.owner.username;
+            if (data.name) {
+                document.getElementById('inp-akun').value = '@' + data.name;
                 updateFormPreview();
             }
-
-            // Detect post type
-            if (post.is_video) {
-                document.getElementById('inp-type').value = 'IGREELS';
-            } else {
-                document.getElementById('inp-type').value = 'IGPOST';
+            if (data.type) {
+                const postType = data.type.toLowerCase().includes('reel') ? 'IGREELS' : 'IGPOST';
+                document.getElementById('inp-type').value = postType;
+                updateFormPreview();
             }
-            updateFormPreview();
-
             showToast('✅ Data berhasil diambil!', 'success');
             return data;
-        } else {
-            showToast('Tidak dapat mengambil data dari post ini', 'error');
-            return null;
         }
+
+        // If post endpoint fails, try Profile by URL to get lastPosts
+        const profileMatch = url.match(/instagram\.com\/([^\/\?]+)/);
+        if (profileMatch && profileMatch[1] !== 'p' && profileMatch[1] !== 'reel') {
+            const profileUrl = `https://www.instagram.com/${profileMatch[1]}`;
+            apiUrl = `https://instagram-statistics-api.p.rapidapi.com/community?url=${encodeURIComponent(profileUrl)}`;
+
+            response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
+                    'X-RapidAPI-Host': CONFIG.RAPIDAPI.HOST
+                }
+            });
+
+            data = await response.json();
+            console.log('Profile Response:', data);
+
+            if (data && data.lastPosts && data.lastPosts.length > 0) {
+                const latestPost = data.lastPosts[0];
+                document.getElementById('inp-likes').value = latestPost.likes || 0;
+                document.getElementById('inp-comments').value = latestPost.comments || 0;
+                document.getElementById('inp-akun').value = '@' + (data.screenName || data.name || '');
+                document.getElementById('inp-type').value = 'IGPOST';
+                updateFormPreview();
+                showToast('✅ Data profil berhasil diambil!', 'success');
+                return data;
+            }
+        }
+
+        // If we still have avgLikes/avgComments from profile
+        if (data && data.avgLikes !== undefined) {
+            document.getElementById('inp-likes').value = Math.round(data.avgLikes) || 0;
+            document.getElementById('inp-comments').value = Math.round(data.avgComments) || 0;
+            document.getElementById('inp-views').value = Math.round(data.avgViews) || 0;
+            if (data.screenName) {
+                document.getElementById('inp-akun').value = '@' + data.screenName;
+                updateFormPreview();
+            }
+            showToast('✅ Data rata-rata berhasil diambil!', 'success');
+            return data;
+        }
+
+        showToast('Tidak dapat mengambil data. Cek URL atau coba lagi.', 'error');
+        return null;
+
     } catch (error) {
         console.error('Fetch Instagram error:', error);
         showToast('Error: ' + error.message, 'error');
