@@ -461,8 +461,11 @@ async function fetchInstagramData(url) {
     }
 
     try {
-        // Try Post by URL endpoint first
-        let apiUrl = `https://instagram-statistics-api.p.rapidapi.com/posts/one?post_url=${encodeURIComponent(url)}`;
+        // Clean URL - remove query parameters
+        const cleanUrl = url.split('?')[0];
+
+        // Try Profile by URL endpoint (documented as community)
+        let apiUrl = `https://instagram-statistics-api.p.rapidapi.com/community?url=${encodeURIComponent(cleanUrl)}`;
 
         let response = await fetch(apiUrl, {
             method: 'GET',
