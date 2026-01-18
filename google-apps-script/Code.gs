@@ -14,6 +14,14 @@
 
 const SHEET_NAME = 'Sheet1';
 
+// ====== API KEY PROTECTION ======
+// GANTI dengan key rahasia Anda sendiri!
+const API_KEY = 'TIMSOSMED_2026_SECRET';
+
+function checkApiKey(key) {
+  return key === API_KEY;
+}
+
 // Column mapping (0-indexed)
 const COLUMNS = {
   inp_dateTime: 0,
@@ -45,6 +53,13 @@ function getSheet() {
 function doGet(e) {
   try {
     const action = e.parameter.action || 'read';
+    
+    // API Key check for write operations
+    if (action !== 'read') {
+      if (!checkApiKey(e.parameter.apiKey)) {
+        return createResponse({ success: false, error: 'Invalid API Key' });
+      }
+    }
     
     switch(action) {
       case 'create':

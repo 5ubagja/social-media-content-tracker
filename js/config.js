@@ -10,6 +10,9 @@ const CONFIG = {
     // https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXXXXXX/exec
     API_URL: 'https://script.google.com/macros/s/AKfycbzC-2PNkPg5bFftOSMtYoS1pXUX3v3S4DSpfzTfZDy7raIakAYN34uQf3q9da3MIZEwdA/exec',
 
+    // API Key for secure access (must match Code.gs)
+    API_KEY: 'TIMSOSMED_2026_SECRET',
+
     // Post types available
     POST_TYPES: [
         'IGPOST',

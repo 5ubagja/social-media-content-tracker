@@ -46,6 +46,7 @@ async function createPost(data) {
         // Build URL with query parameters
         const params = new URLSearchParams({
             action: 'create',
+            apiKey: CONFIG.API_KEY,
             ...data
         });
 
@@ -72,6 +73,7 @@ async function updatePost(data) {
     try {
         const params = new URLSearchParams({
             action: 'update',
+            apiKey: CONFIG.API_KEY,
             ...data
         });
 
@@ -97,6 +99,7 @@ async function deletePost(rowIndex) {
     try {
         const params = new URLSearchParams({
             action: 'delete',
+            apiKey: CONFIG.API_KEY,
             _rowIndex: rowIndex
         });
 
