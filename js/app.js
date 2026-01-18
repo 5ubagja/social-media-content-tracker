@@ -7,6 +7,7 @@
 let allData = [];
 let filteredData = [];
 let currentEditRow = null;
+let currentUser = null; // Store current user ID
 
 // ===================================
 // API Functions (Using GET for all operations)
@@ -233,6 +234,7 @@ function showPage(pageName) {
     // Set default date for form
     if (pageName === 'form') {
         document.getElementById('inp-date').valueAsDate = new Date();
+        handleDateChange(); // Check visibility
     }
 }
 
@@ -408,7 +410,7 @@ function handleFormSubmit(e) {
         post_Pengiklan: document.getElementById('inp-pengiklan').value || '',
         post_Likes: document.getElementById('inp-likes').value || '',
         post_Comments: document.getElementById('inp-comments').value || '',
-        inp_location: document.getElementById('inp-location').value || '',
+        inp_location: document.getElementById('inp-location').value || '', // Automatically filled
         post_Caption: document.getElementById('inp-caption').value || '',
         post_Image_v1: document.getElementById('inp-image1').value || '',
         post_Image_v2: document.getElementById('inp-image2').value || ''
@@ -452,6 +454,24 @@ function handlePostTypeChange() {
 // Counter Input Functions
 // ===================================
 
+function handleDateChange() {
+    const inputDate = document.getElementById('inp-date').valueAsDate;
+    const cardMetrics = document.getElementById('card-metrics');
+
+    if (!inputDate || !cardMetrics) return;
+
+    const today = new Date();
+    // Compare only dates (YYYY-MM-DD)
+    const isToday = inputDate.toDateString() === today.toDateString();
+
+    if (isToday) {
+        cardMetrics.style.display = 'none';
+        // Reset values to 0 when hidden, if desired. For now just hide.
+    } else {
+        cardMetrics.style.display = 'block';
+    }
+}
+
 function adjustCounter(inputId, delta) {
     const input = document.getElementById(inputId);
     let value = parseInt(input.value) || 0;
@@ -466,6 +486,37 @@ function updateFormPreview() {
 
     document.getElementById('preview-account').textContent = akun;
     document.getElementById('preview-type').textContent = type.replace('IG', '');
+}
+
+
+
+// ===================================
+// User Identity Logic
+// ===================================
+
+function checkUserIdentity() {
+    const storedUser = localStorage.getItem('socialTracker_user');
+
+    if (storedUser) {
+        currentUser = storedUser;
+    } else {
+        const userInput = prompt("Masukkan ID Karyawan Anda (contoh: @nama):");
+        if (userInput) {
+            currentUser = userInput;
+            localStorage.setItem('socialTracker_user', userInput);
+        } else {
+            // Default if cancelled, or ask again. 
+            // For now let's set a default or leave blank (logic handles it)
+            currentUser = '@guest';
+            localStorage.setItem('socialTracker_user', currentUser);
+        }
+    }
+
+    // Set value to hidden input if form exists
+    const input = document.getElementById('inp-karyawan');
+    if (input) {
+        input.value = currentUser;
+    }
 }
 
 // ===================================
@@ -534,9 +585,7 @@ async function fetchInstagramData(url) {
             if (data.avgComments !== undefined) {
                 document.getElementById('inp-comments').value = Math.round(data.avgComments) || 0;
             }
-            if (data.avgViews !== undefined) {
-                document.getElementById('inp-views').value = Math.round(data.avgViews) || 0;
-            }
+            // Views removed from UI
 
             updateFormPreview();
             showToast('✅ Data profil berhasil diambil!', 'success');
@@ -547,7 +596,7 @@ async function fetchInstagramData(url) {
         if (data && data.likes !== undefined) {
             document.getElementById('inp-likes').value = data.likes || 0;
             document.getElementById('inp-comments').value = data.comments || 0;
-            document.getElementById('inp-views').value = data.views || data.videoViews || 0;
+            // Views removed from UI
             if (data.text) {
                 document.getElementById('inp-caption').value = data.text.substring(0, 500);
             }
@@ -835,17 +884,20 @@ function displayFeedResults(data) {
 // Geolocation Functions
 // ===================================
 
-function getLocation() {
-    const btn = document.getElementById('btn-location');
+
+
+// ===================================
+// Geolocation Functions
+// ===================================
+
+function getAutoLocation() {
     const input = document.getElementById('inp-location');
+    if (!input) return;
 
     if (!navigator.geolocation) {
-        showToast('Browser tidak mendukung lokasi', 'error');
+        console.log('Browser tidak mendukung lokasi');
         return;
     }
-
-    btn.textContent = '⏳';
-    btn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -853,21 +905,11 @@ function getLocation() {
             const long = position.coords.longitude;
             // Format: Lat, Long
             input.value = `${lat.toFixed(6)}, ${long.toFixed(6)}`;
-
-            btn.textContent = '📍';
-            btn.disabled = false;
-            showToast('Lokasi berhasil diambil!', 'success');
+            console.log('Lokasi otomatis berhasil:', input.value);
         },
         (error) => {
-            console.error('Location error:', error);
-            let msg = 'Gagal ambil lokasi';
-            if (error.code === 1) msg = 'Izin lokasi ditolak';
-            if (error.code === 2) msg = 'Lokasi tidak tersedia';
-            if (error.code === 3) msg = 'Koneksi timeout';
-
-            showToast(msg, 'error');
-            btn.textContent = '📍';
-            btn.disabled = false;
+            console.error('Auto-location error:', error);
+            // Silent error for auto location
         }
     );
 }
@@ -892,6 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('filter-akun').addEventListener('change', filterData);
 
     // Form preview updates
+    document.getElementById('inp-date').addEventListener('change', handleDateChange);
     document.getElementById('inp-akun').addEventListener('input', updateFormPreview);
 
     document.getElementById('inp-type').addEventListener('change', (e) => {
@@ -899,11 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handlePostTypeChange();
     });
 
-    // Geolocation
-    const btnLocation = document.getElementById('btn-location');
-    if (btnLocation) {
-        btnLocation.addEventListener('click', getLocation);
-    }
+    // Geolocation removed
 
     // Instagram Auto-Fetch
     const btnFetchUrl = document.getElementById('btn-fetch-url');
@@ -937,6 +976,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initial load
+    checkUserIdentity(); // Check identity 
+    getAutoLocation(); // Auto fetch location
     fetchData();
     handlePostTypeChange(); // Initialize visibility state
+    handleDateChange(); // Initialize date visibility
 });

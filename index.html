@@ -151,11 +151,9 @@
 
         <!-- Basic Info Section -->
         <div class="card">
+          <input type="hidden" id="inp-karyawan">
+          <input type="hidden" id="inp-location">
           <div class="form-row">
-            <div class="form-group">
-              <label class="form-label required">ID Karyawan</label>
-              <input type="text" class="form-input" id="inp-karyawan" placeholder="@username" required>
-            </div>
             <div class="form-group">
               <label class="form-label required">Tanggal Post</label>
               <input type="date" class="form-input" id="inp-date" required>
@@ -202,7 +200,7 @@
         </div>
 
         <!-- Metrics Section with Counter Inputs -->
-        <div class="card">
+        <div class="card" id="card-metrics">
           <h3 class="card-title mb-md">Metrics</h3>
 
           <div class="counter-group">
@@ -214,14 +212,7 @@
             </div>
           </div>
 
-          <div class="counter-group">
-            <div class="counter-label">VIEWS</div>
-            <div class="counter-input">
-              <button type="button" class="counter-btn" onclick="adjustCounter('inp-views', -1000)">−</button>
-              <input type="number" class="counter-value" id="inp-views" value="0" min="0">
-              <button type="button" class="counter-btn" onclick="adjustCounter('inp-views', 1000)">+</button>
-            </div>
-          </div>
+
 
           <div class="counter-group">
             <div class="counter-label">COMMENTS</div>
@@ -242,14 +233,7 @@
             <input type="text" class="form-input" id="inp-pengiklan" placeholder="Nama pengiklan">
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Location</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" class="form-input" id="inp-location" placeholder="Lokasi..." style="flex:1">
-              <button type="button" class="btn btn-secondary btn-icon" id="btn-location"
-                title="Ambil Lokasi">📍</button>
-            </div>
-          </div>
+
 
           <div class="form-group">
             <label class="form-label">Caption</label>
