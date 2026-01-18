@@ -633,15 +633,13 @@ function formatDateForApi(dateStr) {
     return `${day}.${month}.${year}`;
 }
 
-// Main Feed lookup function
+// Main Feed lookup function - Uses community endpoint with lastPosts
 async function handleFeedLookup() {
     const username = document.getElementById('feed-akun').value.trim();
     const platform = document.getElementById('feed-platform').value;
-    const fromDate = document.getElementById('feed-from').value;
-    const toDate = document.getElementById('feed-to').value;
 
-    if (!username || !fromDate || !toDate) {
-        showToast('Lengkapi semua field!', 'error');
+    if (!username) {
+        showToast('Masukkan nama akun!', 'error');
         return;
     }
 
@@ -657,16 +655,37 @@ async function handleFeedLookup() {
     tbody.innerHTML = '';
 
     try {
-        // Step 1: Get CID
-        showToast('Step 1: Mencari akun...', 'info');
-        const cid = await fetchProfileCid(username, platform);
+        // Build profile URL
+        const baseUrl = PLATFORM_URLS[platform] || PLATFORM_URLS.instagram;
+        const profileUrl = baseUrl + username;
 
-        // Step 2: Get Feed
-        showToast('Step 2: Mengambil postingan...', 'info');
-        const feedData = await fetchFeedPosts(cid, fromDate, toDate);
+        showToast('Mengambil data akun...', 'info');
 
-        // Display results
-        displayFeedResults(feedData);
+        // Call community endpoint
+        const apiUrl = `https://instagram-statistics-api.p.rapidapi.com/community?url=${encodeURIComponent(profileUrl)}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
+                'X-RapidAPI-Host': CONFIG.RAPIDAPI.HOST
+            }
+        });
+
+        let data = await response.json();
+        console.log('Community Response:', data);
+
+        // Unwrap nested response
+        if (data && data.data && typeof data.data === 'object') {
+            data = data.data;
+        }
+
+        if (!data || !data.screenName) {
+            throw new Error('Akun tidak ditemukan. Pastikan nama akun dan platform benar.');
+        }
+
+        // Display profile info and lastPosts
+        displayFeedResults(data);
         showToast('✅ Data berhasil diambil!', 'success');
 
     } catch (error) {
@@ -687,11 +706,24 @@ function displayFeedResults(data) {
 
     loadingDiv.classList.add('hidden');
 
-    const posts = data.posts || data || [];
-    countBadge.textContent = `${posts.length} posts`;
+    // Get posts from lastPosts array (community endpoint) or posts array (feed endpoint)
+    const posts = data.lastPosts || data.posts || [];
+    countBadge.textContent = `${posts.length} posts · @${data.screenName || 'unknown'}`;
 
     if (posts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Tidak ada postingan dalam rentang tanggal ini</td></tr>';
+        // Show profile stats if no posts
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align:center;padding:2rem;">
+                    <strong>Profil: @${data.screenName || 'unknown'}</strong><br>
+                    Followers: ${formatNumber(data.usersCount || 0)}<br>
+                    Avg Likes: ${formatNumber(data.avgLikes || 0)}<br>
+                    Avg Comments: ${formatNumber(data.avgComments || 0)}<br>
+                    Avg Views: ${formatNumber(data.avgViews || 0)}<br><br>
+                    <em>Tidak ada data postingan terakhir</em>
+                </td>
+            </tr>
+        `;
         return;
     }
 
