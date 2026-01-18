@@ -698,56 +698,110 @@ async function handleFeedLookup() {
     }
 }
 
-// Display feed results in table
+// Display feed results - Profile info + Post cards
 function displayFeedResults(data) {
     const loadingDiv = document.getElementById('feed-loading');
-    const tbody = document.getElementById('feed-tbody');
+    const profileCard = document.getElementById('feed-profile-card');
+    const resultsCard = document.getElementById('feed-results-card');
+    const profileInfo = document.getElementById('profile-info');
+    const postsContainer = document.getElementById('feed-posts-container');
     const countBadge = document.getElementById('feed-count');
 
     loadingDiv.classList.add('hidden');
+    profileCard.classList.remove('hidden');
+    resultsCard.classList.remove('hidden');
 
-    // Get posts from lastPosts array (community endpoint) or posts array (feed endpoint)
+    // Render Profile Info Card
+    const verified = data.verified ? '<span class="verified-badge">✓</span>' : '';
+    profileInfo.innerHTML = `
+        <div class="profile-header">
+            <img class="profile-avatar" src="${data.image || ''}" alt="Avatar" onerror="this.style.display='none'">
+            <div class="profile-name-section">
+                <div class="profile-name">${data.name || '-'}${verified}</div>
+                <div class="profile-username">@${data.screenName || '-'}</div>
+            </div>
+        </div>
+        <div class="profile-info-item">
+            <span class="profile-info-label">Followers</span>
+            <span class="profile-info-value">${formatNumber(data.usersCount || 0)}</span>
+        </div>
+        <div class="profile-info-item">
+            <span class="profile-info-label">Avg ER</span>
+            <span class="profile-info-value">${data.avgER ? (data.avgER * 100).toFixed(2) + '%' : '-'}</span>
+        </div>
+        <div class="profile-info-item">
+            <span class="profile-info-label">Avg Likes</span>
+            <span class="profile-info-value">${formatNumber(data.avgLikes || 0)}</span>
+        </div>
+        <div class="profile-info-item">
+            <span class="profile-info-label">Avg Comments</span>
+            <span class="profile-info-value">${formatNumber(data.avgComments || 0)}</span>
+        </div>
+        <div class="profile-info-item">
+            <span class="profile-info-label">Avg Views</span>
+            <span class="profile-info-value">${formatNumber(data.avgViews || 0)}</span>
+        </div>
+        <div class="profile-info-item">
+            <span class="profile-info-label">Country</span>
+            <span class="profile-info-value">${data.countryCode || data.country || '-'}</span>
+        </div>
+        <div class="profile-info-item full-width">
+            <span class="profile-info-label">Description</span>
+            <span class="profile-info-value" style="font-weight:400;font-size:0.8rem;">${data.description || '-'}</span>
+        </div>
+    `;
+
+    // Get posts
     const posts = data.lastPosts || data.posts || [];
-    countBadge.textContent = `${posts.length} posts · @${data.screenName || 'unknown'}`;
+    countBadge.textContent = `${posts.length} posts`;
 
     if (posts.length === 0) {
-        // Show profile stats if no posts
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" style="text-align:center;padding:2rem;">
-                    <strong>Profil: @${data.screenName || 'unknown'}</strong><br>
-                    Followers: ${formatNumber(data.usersCount || 0)}<br>
-                    Avg Likes: ${formatNumber(data.avgLikes || 0)}<br>
-                    Avg Comments: ${formatNumber(data.avgComments || 0)}<br>
-                    Avg Views: ${formatNumber(data.avgViews || 0)}<br><br>
-                    <em>Tidak ada data postingan terakhir</em>
-                </td>
-            </tr>
+        postsContainer.innerHTML = `
+            <div style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <p>Tidak ada data postingan terakhir</p>
+            </div>
         `;
         return;
     }
 
-    tbody.innerHTML = posts.map(post => {
-        const date = post.date ? new Date(post.date).toLocaleDateString('id-ID') : '-';
-        const type = post.type || '-';
+    // Render Post Cards
+    postsContainer.innerHTML = posts.map(post => {
+        // Format date and time
+        let dateTime = '-';
+        if (post.date) {
+            const d = new Date(post.date);
+            dateTime = d.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        const type = post.type || 'post';
+        const thumbnail = post.image || '';
         const likes = formatNumber(post.likes || 0);
         const comments = formatNumber(post.comments || 0);
-        const views = formatNumber(post.views || post.videoViews || 0);
-        const shares = formatNumber(post.rePosts || 0);
-        const er = post.er ? (post.er * 100).toFixed(1) + '%' : '-';
-        const postUrl = post.postUrl || post.url || '#';
+        const caption = post.text ? post.text.substring(0, 200) + (post.text.length > 200 ? '...' : '') : '';
+        const postUrl = post.url || '#';
 
         return `
-            <tr>
-                <td>${date}</td>
-                <td><span class="type-badge">${type}</span></td>
-                <td>❤️ ${likes}</td>
-                <td>💬 ${comments}</td>
-                <td>👁️ ${views}</td>
-                <td>🔄 ${shares}</td>
-                <td>${er}</td>
-                <td><a href="${postUrl}" target="_blank" class="btn btn-sm btn-secondary">🔗</a></td>
-            </tr>
+            <div class="feed-post-card">
+                <div class="feed-post-header">
+                    ${thumbnail ? `<img class="feed-post-thumbnail" src="${thumbnail}" alt="Post" onerror="this.style.display='none'">` : ''}
+                    <div class="feed-post-meta">
+                        <div class="feed-post-date">📅 ${dateTime}</div>
+                        <span class="feed-post-type">${type}</span>
+                        <div class="feed-post-stats">
+                            <span class="feed-post-stat">❤️ ${likes}</span>
+                            <span class="feed-post-stat">💬 ${comments}</span>
+                        </div>
+                    </div>
+                </div>
+                ${caption ? `<div class="feed-post-caption">${caption}</div>` : ''}
+                <a href="${postUrl}" target="_blank" class="feed-post-link">🔗 Lihat Post</a>
+            </div>
         `;
     }).join('');
 }

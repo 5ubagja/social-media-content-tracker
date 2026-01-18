@@ -316,10 +316,22 @@
         </div>
       </div>
 
+      <!-- Profile Info Card -->
+      <div class="card hidden" id="feed-profile-card">
+        <div class="card-header">
+          <h3>📊 Informasi Profil</h3>
+        </div>
+        <div class="card-body">
+          <div class="profile-info-grid" id="profile-info">
+            <!-- Filled by JavaScript -->
+          </div>
+        </div>
+      </div>
+
       <!-- Feed Results -->
       <div class="card hidden" id="feed-results-card">
         <div class="card-header">
-          <h3>Hasil Postingan</h3>
+          <h3>📝 Postingan Terakhir</h3>
           <span class="badge" id="feed-count">0 posts</span>
         </div>
         <div class="card-body" style="overflow-x: auto;">
@@ -327,22 +339,9 @@
             <div class="loading-spinner"></div>
             <p class="mt-md">Mengambil data...</p>
           </div>
-          <table class="data-table" id="feed-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Tipe</th>
-                <th>Likes</th>
-                <th>Comments</th>
-                <th>Views</th>
-                <th>Shares</th>
-                <th>ER</th>
-                <th>Link</th>
-              </tr>
-            </thead>
-            <tbody id="feed-tbody">
-            </tbody>
-          </table>
+          <div id="feed-posts-container">
+            <!-- Posts will be rendered here as cards -->
+          </div>
         </div>
       </div>
     </section>
