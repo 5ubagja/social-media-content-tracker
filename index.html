@@ -361,8 +361,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">ID Karyawan</label>
-              <input type="text" class="form-input" id="edit-karyawan">
+              <input type="hidden" id="edit-karyawan">
             </div>
             <div class="form-group">
               <label class="form-label">Tanggal Post</label>
@@ -380,6 +379,7 @@
               <option value="YOUTUBE">YouTube</option>
               <option value="TWITTER">Twitter/X</option>
               <option value="FACEBOOK">Facebook</option>
+              <option value="IKLAN">IKLAN</option>
             </select>
           </div>
 
@@ -393,9 +393,14 @@
             <input type="url" class="form-input" id="edit-url">
           </div>
 
-          <div class="form-group">
+          <div class="form-group" id="form-group-edit-sumber">
             <label class="form-label">URL Sumber</label>
             <input type="url" class="form-input" id="edit-sumber">
+          </div>
+
+          <div class="form-group" id="form-group-edit-pengiklan">
+            <label class="form-label">Pengiklan</label>
+            <input type="text" class="form-input" id="edit-pengiklan">
           </div>
 
           <div class="form-row">

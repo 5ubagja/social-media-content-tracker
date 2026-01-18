@@ -251,7 +251,9 @@ function openEditModal(rowIndex) {
     document.getElementById('edit-type').value = currentEditRow.post_Type || 'IGPOST';
     document.getElementById('edit-akun').value = currentEditRow.post_Akun || '';
     document.getElementById('edit-url').value = currentEditRow.post_URL || '';
+    document.getElementById('edit-url').value = currentEditRow.post_URL || '';
     document.getElementById('edit-sumber').value = currentEditRow.post_Sumber || '';
+    document.getElementById('edit-pengiklan').value = currentEditRow.post_Pengiklan || ''; // Added new field
     document.getElementById('edit-likes').value = currentEditRow.post_Likes || '';
     document.getElementById('edit-comments').value = currentEditRow.post_Comments || '';
 
@@ -264,6 +266,7 @@ function openEditModal(rowIndex) {
     }
 
     document.getElementById('edit-modal').classList.add('active');
+    handleEditPostTypeChange(); // Initialize visibility
 }
 
 function closeModal() {
@@ -280,6 +283,7 @@ function saveEdit() {
         post_Akun: document.getElementById('edit-akun').value,
         post_URL: document.getElementById('edit-url').value,
         post_Sumber: document.getElementById('edit-sumber').value,
+        post_Pengiklan: document.getElementById('edit-pengiklan').value, // Added new field
         post_Likes: document.getElementById('edit-likes').value,
         post_Comments: document.getElementById('edit-comments').value
     };
@@ -445,6 +449,23 @@ function handlePostTypeChange() {
         // For now just visibility as requested.
     } else {
         // Default (IGPOST, TIKTOK, etc.): Show Sumber, Hide Pengiklan
+        groupPengiklan.style.display = 'none';
+        groupSumber.style.display = 'block';
+    }
+}
+// ===================================
+
+function handleEditPostTypeChange() {
+    const type = document.getElementById('edit-type').value;
+    const groupSumber = document.getElementById('form-group-edit-sumber');
+    const groupPengiklan = document.getElementById('form-group-edit-pengiklan');
+
+    if (!groupSumber || !groupPengiklan) return;
+
+    if (type === 'IKLAN') {
+        groupPengiklan.style.display = 'block';
+        groupSumber.style.display = 'none';
+    } else {
         groupPengiklan.style.display = 'none';
         groupSumber.style.display = 'block';
     }
@@ -941,6 +962,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateFormPreview();
         handlePostTypeChange();
     });
+
+    document.getElementById('edit-type').addEventListener('change', handleEditPostTypeChange);
 
     // Geolocation removed
 
