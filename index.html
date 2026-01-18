@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Social Media Content Tracker - Track and manage your social media posts">
+  <meta name="theme-color" content="#3b82f6">
+  <title>Content Tracker</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css?v=4">
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">📊</div>
+        <span>Content Tracker</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="app-container">
+    <!-- Dashboard Page -->
+    <section id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+        <button class="btn btn-sm btn-secondary" id="btn-refresh">🔄 Refresh</button>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📝</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total Post</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❤️</div>
+          <div class="stat-value" id="stat-likes">0</div>
+          <div class="stat-label">Total Likes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👤</div>
+          <div class="stat-value" id="stat-accounts">0</div>
+          <div class="stat-label">Akun</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-value" id="stat-today">0</div>
+          <div class="stat-label">Hari Ini</div>
+        </div>
+      </div>
+
+      <!-- Search & Filter -->
+      <div class="search-bar">
+        <div class="search-input-wrapper" style="flex:1">
+          <span class="icon">🔍</span>
+          <input type="text" class="form-input" id="search-input" placeholder="Cari post...">
+        </div>
+        <select class="form-select" id="filter-akun" style="width: auto; min-width: 130px;">
+          <option value="">Semua Akun</option>
+        </select>
+      </div>
+
+      <!-- Data Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Data Post</h3>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Type</th>
+                <th>Akun</th>
+                <th>URL</th>
+                <th>Likes</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body">
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="data-cards" id="data-cards">
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading-state">
+          <div class="loading-spinner"></div>
+          <p class="mt-md">Memuat data...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state hidden" id="empty-state">
+          <div class="icon">📭</div>
+          <p>Belum ada data</p>
+          <button class="btn btn-primary mt-md" onclick="showPage('form')">
+            + Tambah Post Baru
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form Page -->
+    <section id="page-form" class="page">
+      <div class="page-header">
+        <button class="btn btn-link" onclick="showPage('dashboard')">✕</button>
+        <h1 class="page-title">MEDIA UPDATE</h1>
+        <span class="page-counter" id="form-step">1 / 2</span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-label">In Progress</span>
+          <span class="progress-value">50%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 50%"></div>
+        </div>
+      </div>
+
+      <form id="post-form">
+        <!-- Post Card Preview -->
+        <div class="post-card">
+          <div class="post-thumbnail"></div>
+          <div class="post-info">
+            <div class="post-account" id="preview-account">@username</div>
+            <div class="post-meta">Instagram Feed • <span id="preview-type">Post</span></div>
+            <div class="post-tags">
+              <span class="post-tag" id="preview-tag1">CONTENT</span>
+              <span class="post-tag" id="preview-tag2">UPDATE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Info Section -->
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required">ID Karyawan</label>
+              <input type="text" class="form-input" id="inp-karyawan" placeholder="@username" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label required">Tanggal Post</label>
+              <input type="date" class="form-input" id="inp-date" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required">Tipe Post</label>
+              <select class="form-select" id="inp-type" required>
+                <option value="">Pilih tipe...</option>
+                <option value="IGPOST">IG Post</option>
+                <option value="IGREELS">IG Reels</option>
+                <option value="IGSTORY">IG Story</option>
+                <option value="TIKTOK">TikTok</option>
+                <option value="YOUTUBE">YouTube</option>
+                <option value="TWITTER">Twitter/X</option>
+                <option value="FACEBOOK">Facebook</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label required">Akun</label>
+              <input type="text" class="form-input" id="inp-akun" placeholder="@akun_client" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required">URL Post</label>
+            <input type="url" class="form-input" id="inp-url" placeholder="https://instagram.com/p/..." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">URL Sumber</label>
+            <input type="url" class="form-input" id="inp-sumber" placeholder="https://...">
+          </div>
+        </div>
+
+        <!-- Metrics Section with Counter Inputs -->
+        <div class="card">
+          <h3 class="card-title mb-md">Metrics</h3>
+
+          <div class="counter-group">
+            <div class="counter-label">LIKES</div>
+            <div class="counter-input">
+              <button type="button" class="counter-btn" onclick="adjustCounter('inp-likes', -100)">−</button>
+              <input type="number" class="counter-value" id="inp-likes" value="0" min="0">
+              <button type="button" class="counter-btn" onclick="adjustCounter('inp-likes', 100)">+</button>
+            </div>
+          </div>
+
+          <div class="counter-group">
+            <div class="counter-label">VIEWS</div>
+            <div class="counter-input">
+              <button type="button" class="counter-btn" onclick="adjustCounter('inp-views', -1000)">−</button>
+              <input type="number" class="counter-value" id="inp-views" value="0" min="0">
+              <button type="button" class="counter-btn" onclick="adjustCounter('inp-views', 1000)">+</button>
+            </div>
+          </div>
+
+          <div class="counter-group">
+            <div class="counter-label">COMMENTS</div>
+            <div class="counter-input">
+              <button type="button" class="counter-btn" onclick="adjustCounter('inp-comments', -10)">−</button>
+              <input type="number" class="counter-value" id="inp-comments" value="0" min="0">
+              <button type="button" class="counter-btn" onclick="adjustCounter('inp-comments', 10)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="card">
+          <h3 class="card-title mb-md">Info Tambahan</h3>
+
+          <div class="form-group">
+            <label class="form-label">Pengiklan</label>
+            <input type="text" class="form-input" id="inp-pengiklan" placeholder="Nama pengiklan">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" class="form-input" id="inp-location" placeholder="Lokasi..." style="flex:1">
+              <button type="button" class="btn btn-secondary btn-icon" id="btn-location"
+                title="Ambil Lokasi">📍</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Caption</label>
+            <textarea class="form-textarea" id="inp-caption" placeholder="Caption post..."></textarea>
+          </div>
+        </div>
+
+        <!-- Hidden fields for images -->
+        <input type="hidden" id="inp-image1">
+        <input type="hidden" id="inp-image2">
+
+        <button type="submit" class="btn btn-primary btn-block" id="btn-submit">
+          Save & Continue →
+        </button>
+
+        <button type="button" class="btn btn-link btn-block mt-sm" onclick="showPage('dashboard')">
+          Skip this post
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <span class="icon">📊</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" data-page="form">
+      <span class="icon">➕</span>
+      <span>Input</span>
+    </button>
+  </nav>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Data</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-form">
+          <input type="hidden" id="edit-row-index">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">ID Karyawan</label>
+              <input type="text" class="form-input" id="edit-karyawan">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tanggal Post</label>
+              <input type="date" class="form-input" id="edit-date">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipe Post</label>
+            <select class="form-select" id="edit-type">
+              <option value="IGPOST">IG Post</option>
+              <option value="IGREELS">IG Reels</option>
+              <option value="IGSTORY">IG Story</option>
+              <option value="TIKTOK">TikTok</option>
+              <option value="YOUTUBE">YouTube</option>
+              <option value="TWITTER">Twitter/X</option>
+              <option value="FACEBOOK">Facebook</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Akun</label>
+            <input type="text" class="form-input" id="edit-akun">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">URL Post</label>
+            <input type="url" class="form-input" id="edit-url">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">URL Sumber</label>
+            <input type="url" class="form-input" id="edit-sumber">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Likes</label>
+              <input type="number" class="form-input" id="edit-likes" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Comments</label>
+              <input type="number" class="form-input" id="edit-comments" min="0">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveEdit()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Konfirmasi Hapus</h3>
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Apakah Anda yakin ingin menghapus data ini?</p>
+        <p class="text-muted mt-sm">Data yang dihapus tidak dapat dikembalikan.</p>
+        <input type="hidden" id="delete-row-index">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
+</body>
+
+</html>
