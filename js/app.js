@@ -478,6 +478,11 @@ async function fetchInstagramData(url) {
         let data = await response.json();
         console.log('API Response:', data);
 
+        // Unwrap nested response if API returns {meta, data: {...}}
+        if (data && data.data && typeof data.data === 'object') {
+            data = data.data;
+        }
+
         // Check if this is a valid community/profile response
         if (data && data.screenName) {
             // Fill account name
