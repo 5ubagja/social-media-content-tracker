@@ -13,6 +13,12 @@ const CONFIG = {
     // API Key for secure access (must match Code.gs)
     API_KEY: 'TIMSOSMED_2026_SECRET',
 
+    // RapidAPI for Instagram Auto-Fetch
+    RAPIDAPI: {
+        KEY: '7782cdc52emshab990d498dcf457p1e43fejsnd248d452f15a',
+        HOST: 'instagram-statistics-api.p.rapidapi.com'
+    },
+
     // Post types available
     POST_TYPES: [
         'IGPOST',

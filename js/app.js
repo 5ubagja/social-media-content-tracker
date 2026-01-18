@@ -444,6 +444,90 @@ function updateFormPreview() {
 }
 
 // ===================================
+// Instagram Auto-Fetch Functions
+// ===================================
+
+async function fetchInstagramData(url) {
+    // Validate Instagram URL
+    if (!url.includes('instagram.com')) {
+        return null;
+    }
+
+    const btn = document.getElementById('btn-fetch-url');
+    if (btn) {
+        btn.textContent = '⏳';
+        btn.disabled = true;
+    }
+
+    try {
+        // Extract post shortcode from URL
+        const urlMatch = url.match(/instagram\.com\/(?:p|reel|reels)\/([A-Za-z0-9_-]+)/);
+        if (!urlMatch) {
+            showToast('URL Instagram tidak valid', 'error');
+            return null;
+        }
+
+        const shortcode = urlMatch[1];
+
+        // Call RapidAPI
+        const response = await fetch(`https://instagram-statistics-api.p.rapidapi.com/posts/${shortcode}`, {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
+                'X-RapidAPI-Host': CONFIG.RAPIDAPI.HOST
+            }
+        });
+
+        const data = await response.json();
+
+        if (data && data.data) {
+            const post = data.data;
+
+            // Auto-fill form fields
+            if (post.likes_count !== undefined) {
+                document.getElementById('inp-likes').value = post.likes_count;
+            }
+            if (post.comments_count !== undefined) {
+                document.getElementById('inp-comments').value = post.comments_count;
+            }
+            if (post.views_count !== undefined) {
+                document.getElementById('inp-views').value = post.views_count;
+            }
+            if (post.caption) {
+                document.getElementById('inp-caption').value = post.caption.substring(0, 500);
+            }
+            if (post.owner && post.owner.username) {
+                document.getElementById('inp-akun').value = '@' + post.owner.username;
+                updateFormPreview();
+            }
+
+            // Detect post type
+            if (post.is_video) {
+                document.getElementById('inp-type').value = 'IGREELS';
+            } else {
+                document.getElementById('inp-type').value = 'IGPOST';
+            }
+            updateFormPreview();
+
+            showToast('✅ Data berhasil diambil!', 'success');
+            return data;
+        } else {
+            showToast('Tidak dapat mengambil data dari post ini', 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error('Fetch Instagram error:', error);
+        showToast('Error: ' + error.message, 'error');
+        return null;
+    } finally {
+        if (btn) {
+            btn.textContent = '🔍';
+            btn.disabled = false;
+        }
+    }
+}
+
+// ===================================
 // Geolocation Functions
 // ===================================
 
@@ -511,6 +595,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLocation = document.getElementById('btn-location');
     if (btnLocation) {
         btnLocation.addEventListener('click', getLocation);
+    }
+
+    // Instagram Auto-Fetch
+    const btnFetchUrl = document.getElementById('btn-fetch-url');
+    if (btnFetchUrl) {
+        btnFetchUrl.addEventListener('click', () => {
+            const url = document.getElementById('inp-url').value;
+            if (url) {
+                fetchInstagramData(url);
+            } else {
+                showToast('Masukkan URL terlebih dahulu', 'error');
+            }
+        });
     }
 
     // Refresh button
