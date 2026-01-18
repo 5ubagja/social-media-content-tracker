@@ -460,17 +460,10 @@ async function fetchInstagramData(url) {
     }
 
     try {
-        // Extract post shortcode from URL
-        const urlMatch = url.match(/instagram\.com\/(?:p|reel|reels)\/([A-Za-z0-9_-]+)/);
-        if (!urlMatch) {
-            showToast('URL Instagram tidak valid', 'error');
-            return null;
-        }
+        // Call RapidAPI with correct endpoint: /posts/one?post_url=
+        const apiUrl = `https://instagram-statistics-api.p.rapidapi.com/posts/one?post_url=${encodeURIComponent(url)}`;
 
-        const shortcode = urlMatch[1];
-
-        // Call RapidAPI
-        const response = await fetch(`https://instagram-statistics-api.p.rapidapi.com/posts/${shortcode}`, {
+        const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'X-RapidAPI-Key': CONFIG.RAPIDAPI.KEY,
@@ -479,6 +472,7 @@ async function fetchInstagramData(url) {
         });
 
         const data = await response.json();
+        console.log('API Response:', data);
 
         if (data && data.data) {
             const post = data.data;
